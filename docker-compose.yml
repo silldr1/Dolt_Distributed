@@ -26,8 +26,7 @@ services:
         exit 0;"
 
   node1:
-    build:
-      context: ./node
+    image: dolthub/dolt
     container_name: node1
     hostname: node1
     environment:
@@ -37,12 +36,12 @@ services:
       - createbucket
     volumes:
       - node1_data:/root/dolt
+      - ./node/init.sh:/init.sh
     working_dir: /root/dolt
-    command: sh -c ". /init.sh && tail -f /dev/null"
+    entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
   node2:
-    build:
-      context: ./node
+    image: dolthub/dolt
     container_name: node2
     hostname: node2
     environment:
@@ -52,12 +51,12 @@ services:
       - createbucket
     volumes:
       - node2_data:/root/dolt
+      - ./node/init.sh:/init.sh
     working_dir: /root/dolt
-    command: sh -c ". /init.sh && tail -f /dev/null"
+    entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
   node3:
-    build:
-      context: ./node
+    image: dolthub/dolt
     container_name: node3
     hostname: node3
     environment:
@@ -67,8 +66,9 @@ services:
       - createbucket
     volumes:
       - node3_data:/root/dolt
+      - ./node/init.sh:/init.sh
     working_dir: /root/dolt
-    command: sh -c ". /init.sh && tail -f /dev/null"
+    entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
 volumes:
   minio_data:

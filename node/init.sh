@@ -1,5 +1,9 @@
 #!/bin/bash
 
+dolt config --global --add user.name "Test"
+dolt config --global --add user.email "test@example.com"
+
+
 cd /root/dolt
 
 # Check if this is the first time setup
@@ -10,7 +14,7 @@ if [ ! -d .dolt ]; then
     dolt commit -m "Initial commit"
 
     dolt remote add origin $DOLT_REMOTE_URL
-    dolt creds import --name default --public-key ~/.dolt_id.pub --private-key ~/.dolt_id
+    dolt creds init
     dolt push origin main
 else
     dolt remote add origin $DOLT_REMOTE_URL || true
