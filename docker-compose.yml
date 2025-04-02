@@ -1,42 +1,22 @@
 services:
-
-  minio:
-    image: minio/minio
-    container_name: minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
+  dolt-remote:
+    image: alpine
+    container_name: dolt-remote
     volumes:
-      - minio_data:/data
+      - dolt_remote_data:/dolt-remote
+    command: tail -f /dev/null
 
-  createbucket:
-    image: minio/mc
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-        sleep 5; 
-        mc alias set local http://minio:9000 minioadmin minioadmin && 
-        mc mb local/dolt-remote && 
-        mc policy set public local/dolt-remote;
-        exit 0;"
 
   node1:
     image: dolthub/dolt
     container_name: node1
     hostname: node1
-    environment:
-      DOLT_REMOTE_URL: s3://dolt-remote/main
     depends_on:
-      - minio
-      - createbucket
+      - dolt-remote
     volumes:
       - node1_data:/root/dolt
-      - ./node/init.sh:/init.sh
+      - dolt_remote_data:/dolt-remote
+      - ./node1/init.sh:/init.sh
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
@@ -44,14 +24,12 @@ services:
     image: dolthub/dolt
     container_name: node2
     hostname: node2
-    environment:
-      DOLT_REMOTE_URL: s3://dolt-remote/main
     depends_on:
-      - minio
-      - createbucket
+      - dolt-remote
     volumes:
       - node2_data:/root/dolt
-      - ./node/init.sh:/init.sh
+      - dolt_remote_data:/dolt-remote
+      - ./nodeX/init.sh:/init.sh
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
@@ -59,19 +37,17 @@ services:
     image: dolthub/dolt
     container_name: node3
     hostname: node3
-    environment:
-      DOLT_REMOTE_URL: s3://dolt-remote/main
     depends_on:
-      - minio
-      - createbucket
+      - dolt-remote
     volumes:
       - node3_data:/root/dolt
-      - ./node/init.sh:/init.sh
+      - dolt_remote_data:/dolt-remote
+      - ./nodeX/init.sh:/init.sh
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
 volumes:
-  minio_data:
   node1_data:
   node2_data:
   node3_data:
+  dolt_remote_data:
