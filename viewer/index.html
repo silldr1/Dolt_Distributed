@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>Dolt Distributed Visualizer</title>
   <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+  <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
   <style>
     body { font-family: sans-serif; margin: 0; }
     #tabs { display: flex; background: #333; color: white; }
@@ -36,13 +38,52 @@
     async function fetchLogs() {
       const nodes = ['node1', 'node2', 'node3'];
       const allCommits = [];
+
       for (const node of nodes) {
         try {
-          const res = await fetch(`/${node}_log.json`);
-          const data = await res.json();
-          allCommits.push(...data.map(c => ({ ...c, node })));
-        } catch (e) { console.warn(`No log for ${node}`); }
+          const res = await fetch(`/shared/logs/${node}.json`);
+          if (!res.ok) {
+            console.warn(`Failed to fetch log for ${node}: HTTP ${res.status}`);
+            continue;
+          }
+
+          const json = await res.json();
+          const rows = json.rows;
+
+          if (!Array.isArray(rows)) {
+            console.warn(`Invalid log format for ${node}`, json);
+            continue;
+          }
+
+          // Create nodes
+          const commitNodes = rows.map(c => ({
+            data: {
+              id: c.commit_hash,
+              label: `${c.commit_hash.slice(0, 6)}\\n${c.committer}`,
+              node: node
+            }
+          }));
+
+          elements.push(...commitNodes);
+
+          // Create edges (if parent info is available)
+          const commitEdges = rows
+            .filter(c => c.parent) // only if parent is present in the SQL query
+            .map(c => ({
+              data: {
+                source: c.parent,
+                target: c.commit_hash
+              }
+            }));
+
+          elements.push(...commitEdges);
+        
+        } catch (e) {
+          console.error(`Error loading log for ${node}:`, e);
+        }
       }
+
+      console.log('Final merged commit list:', allCommits);
       return allCommits;
     }
 
@@ -77,7 +118,7 @@
     }
 
     async function loadSchemaGraph() {
-      const res = await fetch('/node1_schema.json');
+      const res = await fetch('/shared/schema/node1_schema.json');
       const schema = await res.json();
       const nodes = schema.map(table => ({
         data: { id: table.name, label: table.name }

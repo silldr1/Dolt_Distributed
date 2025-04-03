@@ -12,8 +12,8 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./viewer:/usr/local/apache2/htdocs:ro
-      - dolt_remote_data:/dolt-remote:ro
+      - ./viewer:/usr/local/apache2/htdocs/viewer
+      - dolt_remote_data:/usr/local/apache2/htdocs/shared
  
   node1:
     image: dolthub/dolt-sql-server:latest
@@ -24,7 +24,7 @@ services:
     volumes:
       - node1_data:/root/dolt
       - dolt_remote_data:/dolt-remote
-      - ./node1/init.sh:/init.sh
+      - ./init.sh:/init.sh
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
@@ -37,7 +37,7 @@ services:
     volumes:
       - node2_data:/root/dolt
       - dolt_remote_data:/dolt-remote
-      - ./nodeX/init.sh:/init.sh
+      - ./init.sh:/init.sh
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
@@ -50,7 +50,7 @@ services:
     volumes:
       - node3_data:/root/dolt
       - dolt_remote_data:/dolt-remote
-      - ./nodeX/init.sh:/init.sh
+      - ./init.sh:/init.sh
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
