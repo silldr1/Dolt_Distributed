@@ -1,4 +1,6 @@
 #!/bin/sh
+export PATH="/root/bin:$PATH"
+
 set -e
 
 echo "[node1] Installing dependencies..."
@@ -24,3 +26,11 @@ dolt push origin main
 
 echo "[node1] Push complete. Signaling readiness..."
 touch /dolt-remote/.node1_ready
+
+cd /root/dolt
+
+# while true; do
+#   dolt log --json > /dolt-remote/node1_log.json
+#   dolt schema show --json > /dolt-remote/node1_schema.json
+#   sleep 10
+# done

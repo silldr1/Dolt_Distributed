@@ -6,9 +6,17 @@ services:
       - dolt_remote_data:/dolt-remote
     command: tail -f /dev/null
 
-
+  viewer:
+    image: httpd:2.4
+    container_name: dolt-viewer
+    ports:
+      - "8080:80"
+    volumes:
+      - ./viewer:/usr/local/apache2/htdocs:ro
+      - dolt_remote_data:/dolt-remote:ro
+ 
   node1:
-    image: dolthub/dolt
+    image: dolthub/dolt-sql-server:latest
     container_name: node1
     hostname: node1
     depends_on:
@@ -21,7 +29,7 @@ services:
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
   node2:
-    image: dolthub/dolt
+    image: dolthub/dolt-sql-server:latest
     container_name: node2
     hostname: node2
     depends_on:
@@ -34,7 +42,7 @@ services:
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
   node3:
-    image: dolthub/dolt
+    image: dolthub/dolt-sql-server:latest
     container_name: node3
     hostname: node3
     depends_on:
