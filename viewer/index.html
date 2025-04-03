@@ -37,25 +37,19 @@
 
     async function fetchLogs() {
       const nodes = ['node1', 'node2', 'node3'];
-      const allCommits = [];
+      const elements = [];
 
       for (const node of nodes) {
         try {
           const res = await fetch(`/shared/logs/${node}.json`);
-          if (!res.ok) {
-            console.warn(`Failed to fetch log for ${node}: HTTP ${res.status}`);
-            continue;
-          }
-
           const json = await res.json();
           const rows = json.rows;
 
           if (!Array.isArray(rows)) {
-            console.warn(`Invalid log format for ${node}`, json);
+            console.warn(`Invalid structure for ${node}`, json);
             continue;
           }
 
-          // Create nodes
           const commitNodes = rows.map(c => ({
             data: {
               id: c.commit_hash,
@@ -66,26 +60,14 @@
 
           elements.push(...commitNodes);
 
-          // Create edges (if parent info is available)
-          const commitEdges = rows
-            .filter(c => c.parent) // only if parent is present in the SQL query
-            .map(c => ({
-              data: {
-                source: c.parent,
-                target: c.commit_hash
-              }
-            }));
-
-          elements.push(...commitEdges);
-        
         } catch (e) {
-          console.error(`Error loading log for ${node}:`, e);
+          console.error(`Error loading log from ${node}:`, e);
         }
       }
 
-      console.log('Final merged commit list:', allCommits);
-      return allCommits;
+      return elements;
     }
+
 
     function renderGraph(elements) {
       viewer.innerHTML = '';
@@ -101,21 +83,35 @@
     }
 
     async function loadCommitGraph() {
-      const logs = await fetchLogs();
-      const nodes = logs.map(commit => ({
-        data: {
-          id: commit.hash,
-          label: commit.hash.substring(0, 6) + '\n' + commit.committer.name,
-          node: commit.node
-        }
-      }));
-      const edges = logs.flatMap(commit =>
-        commit.parentHashes.map(parent => ({
-          data: { source: parent, target: commit.hash }
-        }))
-      );
-      renderGraph([...nodes, ...edges]);
+      const elements = await fetchLogs();
+
+      viewer.innerHTML = '';
+      cy = cytoscape({
+        container: viewer,
+        elements: elements,
+        style: [
+          {
+            selector: 'node',
+            style: {
+              label: 'data(label)',
+              'background-color': '#666',
+              'color': '#fff'
+            }
+          },
+          {
+            selector: 'edge',
+            style: {
+              width: 2,
+              'line-color': '#ccc',
+              'target-arrow-shape': 'triangle',
+              'target-arrow-color': '#ccc'
+            }
+          }
+        ],
+        layout: { name: 'dagre' }
+      });
     }
+
 
     async function loadSchemaGraph() {
       const res = await fetch('/shared/schema/node1_schema.json');
