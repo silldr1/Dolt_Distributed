@@ -1,0 +1,200 @@
+# Configuration file reference available at
+# https://docs.doltlab.com/reference/installer/configuration-file
+
+version: "v2.3.8"
+
+# `host` is the hostname or IP address of the host running DoltLab. Required.
+host: "10.109.8.211"
+
+# `use_env`, if true, the installer will not write sensitive information to assets it generates.
+# Instead, you will be required to define the some/all of the following environment variables before starting DoltLab:
+#   DEFAULT_USER_PASSWORD
+#   DOLT_ADMIN_PASSWORD
+#   DOLT_DOLTHUBAPI_PASSWORD
+#   SMTP_SERVER_USERNAME
+#   SMTP_SERVER_PASSWORD
+#   SMTP_SERVER_OAUTH_TOKEN
+#   DOLTLAB_ENTERPRISE_ONLINE_PRODUCT_CODE
+#   DOLTLAB_ENTERPRISE_ONLINE_SHARED_KEY
+#   DOLTLAB_ENTERPRISE_ONLINE_API_KEY
+#   DOLTLAB_ENTERPRISE_OFFLINE_LICENSE_KEY
+#   DOLTLAB_ENTERPRISE_OFFLINE_PRODUCT_CODE
+#   DOLTLAB_ENTERPRISE_OFFLINE_SHARED_KEY
+#   DOLTLAB_ENTERPRISE_OFFLINE_API_KEY
+#   DOLTLAB_ENTERPRISE_OFFLINE_LICENSE_KEY
+# use_env: false
+
+# `services` contains config for specific DoltLab services.
+# See https://docs.doltlab.com/reference/installer/configuration-file#services for more information.
+services:
+
+#  The first time DoltLab runs, it uses the passwords defined in `admin_password`
+#  and `dolthubapi_password` to initialize DoltLab's application database.
+#  After initialization, these values should not be changed in this file. Instead, they must be changed by connecting to the
+#  running `doltlabdb` server.
+#  See https://docs.doltlab.com/reference/installer/configuration-file#doltlabdb for more information.
+  doltlabdb:
+    admin_password: "DoltLab1234"
+    dolthubapi_password: "DoltLab1234"
+#    host: ""
+#    port: 3306
+#    tls_skip_verify: false
+#    volume_paths:
+#      data_volume_path: ""
+#      root_volume_path: ""
+#      backups_volume_path: ""
+#      configs_volume_path: ""
+#  doltlabapi:
+#    host: ""
+#    port: 9443
+#    csv_port: 9444
+#    cloud_storage:
+#      aws_region: ""
+#      user_import_uploads_aws_bucket: ""
+#      query_job_aws_bucket: ""
+#      asyncworker_aws_sqs_queue: ""
+#  doltlabremoteapi:
+#    host: ""
+#    port: 50051
+#    file_server_port: 100
+#    nbs_memory_cache_limit: 17179869184
+#    cloud_storage:
+#      aws_region: ""
+#      aws_bucket: ""
+#      aws_dynamodb_table: ""
+#    volume_paths:
+#      data_volume_path: ""
+#  doltlabfileserviceapi:
+#    host: ""
+#    port: 4321
+#    volume_paths:
+#      uploads_volume_path: ""
+#  doltlabgraphql:
+#    host: ""
+#    port: 9000
+#  doltlabui:
+#    host: ""
+#    port: 80
+
+# `default_user` configures the default user account created by DoltLab the first time it starts up. This account is able to use
+# all of DoltLab's features, without connecting DoltLab to an SMTP server.
+# See https://docs.doltlab.com/guides/installation/start-doltlab for more information.
+default_user:
+  name: "admin"
+  password: "DoltLab1234"
+  email: "admin@localhost"
+
+## `docker_network` is the name of the Docker network DoltLab will run in. Default is network name is `doltlab`.
+#docker_network: "doltlab"
+
+## First-party metrics can be disabled by setting `metrics_disabled: true`. Default is `false`.
+#metrics_disabled: false
+
+## To restrict account creation to whitelisted users only, set `whitelist_all_users: false`. Default is `true`.
+## See https://docs.doltlab.com/guides/administrator#prevent-unauthorized-user-account-creation for more information.
+#whitelist_all_users: true
+
+## `jobs` provides options for limit resource consumption of DoltLab Jobs.
+## See https://docs.doltlab.com/guides/administrator#improve-doltlab-performance for more information.
+#jobs:
+#  concurrency_limit: 10
+#  concurrency_loop_seconds: 30
+#  max_retries: 5
+
+## DoltLab Enterprise offers exclusive scaling, performance, and features that can be configured with the `enterprise` block.
+## See https://docs.doltlab.com/guides/enterprise for more information.
+#enterprise:
+#  online_product_code: ""
+#  online_shared_key: ""
+#  online_api_key: ""
+#  online_license_key: ""
+#  offline_product_code: ""
+#  offline_shared_key: ""
+#  offline_api_key: ""
+#  offline_license_key: ""
+#  offline_license_file: ""
+#  request_offline_activation: false
+#
+## `smtp` is used to configure a connection to an existing SMTP server. Optional.
+## For more information on connecting your instance to an SMTP server,
+## see https://docs.doltlab.com/guides/administrator#connect-smtp-server.
+#  smtp:
+#    auth_method: "plain"
+#    host: ""
+#    port: 0
+#    no_reply_email: ""
+#    username: ""
+#    password: ""
+#    oauth_token: ""
+#    identity: ""
+#    trace: ""
+#    client_hostname: ""
+#    implicit_tls: false
+#    insecure_tls: false
+#
+## `scheme` defines the HTTP scheme DoltLab is served over. Default is `http`.
+## See https://docs.doltlab.com/guides/administrator#serve-doltlab-over-https-natively for more information.
+#  scheme: "http"
+#
+## `tls` is used to serve DoltLab over HTTPS.
+## See https://docs.doltlab.com/guides/administrator#serve-doltlab-over-https-natively for more information.
+#  tls:
+#    cert_chain: ""
+#    private_key: ""
+#
+## `super_admins` define users with "super admin" privileges.
+## See https://docs.doltlab.com/guides/enterprise#add-super-admins-to-a-doltlab-instance for more information.
+#  super_admins: []
+#
+## `saml` is used to configure single-sign-on.
+## See https://docs.doltlab.com/guides/enterprise#configure-saml-single-sign-on for more information.
+#  saml:
+#    metadata_descriptor_file: ""
+#    cert_common_name: ""
+#
+## `customize` is used to define customizable options for DoltLab.
+#  customize:
+#
+## Use `logo` to specify a path to a custom logo image file.
+## See https://docs.doltlab.com/guides/enterprise#use-custom-logo-on-doltlab-instance for more information.
+#    logo: ""
+#
+## Set `email_templates: true` to generate email templates that can be customized.
+## See https://docs.doltlab.com/guides/enterprise#customize-automated-emails for more information.
+#    email_templates: false
+#
+## `color_overrides` allow DoltLab's colors to be overridden.
+## See https://docs.doltlab.com/guides/enterprise#customize-doltlab-colors for more information.
+#    color_overrides:
+#      rgb_accent_1: ""
+#      rgb_background_accent_1: ""
+#      rgb_background_gradient_start: ""
+#      rgb_button_1: ""
+#      rgb_button_2: ""
+#      rgb_link_1: ""
+#      rgb_link_2: ""
+#      rgb_link_light: ""
+#      rgb_primary: ""
+#      rgb_code_background: ""
+#
+## `automated_backups` is used to configure automatic backups of `doltlabdb` to a cloud remote.
+## See https://docs.doltlab.com/guides/enterprise#automated-remote-backups for more information.
+#  automated_backups:
+#    remote_url: ""
+#    aws_region: ""
+#    aws_profile: ""
+#    aws_shared_credentials_file: ""
+#    aws_config_file: ""
+#    google_credentials_file: ""
+#    oci_config_file: ""
+#    oci_key_file: ""
+#
+## `multihost` is used to configure multihost deployments of DoltLab.
+## See https://docs.doltlab.com/guides/enterprise#deploy-doltlab-across-multiple-hosts for more information.
+#  multihost:
+#    doltlabdb_only: false
+#    doltlabapi_only: false
+#    doltlabfileserviceapi_only: false
+#    doltlabgraphql_only: false
+#    doltlabui_only: false
+

@@ -1,56 +1,41 @@
 services:
-  dolt-remote:
-    image: alpine
-    container_name: dolt-remote
-    volumes:
-      - dolt_remote_data:/dolt-remote
-    command: tail -f /dev/null
-
-  viewer:
-    image: httpd:2.4
-    container_name: dolt-viewer
-    ports:
-      - "8080:80"
-    volumes:
-      - ./viewer:/usr/local/apache2/htdocs/viewer
-      - dolt_remote_data:/usr/local/apache2/htdocs/shared
  
   node1:
-    image: dolthub/dolt-sql-server:latest
+    image: dolthub/dolt:latest
     container_name: node1
     hostname: node1
-    depends_on:
-      - dolt-remote
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - node1_data:/root/dolt
-      - dolt_remote_data:/dolt-remote
       - ./init.sh:/init.sh
+      - ./creds:/root/creds
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
   node2:
-    image: dolthub/dolt-sql-server:latest
+    image: dolthub/dolt:latest
     container_name: node2
     hostname: node2
-    depends_on:
-      - dolt-remote
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - node2_data:/root/dolt
-      - dolt_remote_data:/dolt-remote
       - ./init.sh:/init.sh
+      - ./creds:/root/creds
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
   node3:
-    image: dolthub/dolt-sql-server:latest
+    image: dolthub/dolt:latest
     container_name: node3
     hostname: node3
-    depends_on:
-      - dolt-remote
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - node3_data:/root/dolt
-      - dolt_remote_data:/dolt-remote
       - ./init.sh:/init.sh
+      - ./creds:/root/creds
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
@@ -58,4 +43,8 @@ volumes:
   node1_data:
   node2_data:
   node3_data:
-  dolt_remote_data:
+  doltlab_pg_data:
+
+networks:
+  doltlab:
+    external: true

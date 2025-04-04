@@ -1,0 +1,1080 @@
+{
+    "staticResources": {
+        "listeners": [
+            {
+                "name": "internal_metrics_listener",
+                "address": {
+                    "socketAddress": {
+                        "address": "0.0.0.0",
+                        "portValue": 7770
+                    }
+                },
+                "filterChains": [
+                    {
+                        "filters": [
+                            {
+                                "name": "envoy.filters.network.http_connection_manager",
+                                "typedConfig": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                                    "statPrefix": "http",
+                                    "routeConfig": {
+                                        "virtualHosts": [
+                                            {
+                                                "name": "http",
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "path": "/stats/prometheus"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "admin"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "path": "/doltlabremoteapi"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabremoteapi_metrics",
+                                                            "prefixRewrite": "/metrics"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "path": "/doltlabapi"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabapi_metrics",
+                                                            "prefixRewrite": "/metrics"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "path": "/backup-syncer"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "backup_syncer_metrics",
+                                                            "prefixRewrite": "/metrics"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "httpFilters": [
+                                        {
+                                            "name": "envoy.filters.http.router",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                            }
+                                        }
+                                    ],
+                                    "accessLog": [
+                                        {
+                                            "name": "envoy.access_loggers.stream",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog",
+                                                "logFormat": {
+                                                    "textFormatSource": {
+                                                        "inlineString": "[%START_TIME%]\n\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\"\n%RESPONSE_CODE% %GRPC_STATUS% %RESPONSE_FLAGS%\n%BYTES_RECEIVED% %BYTES_SENT%\n%DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\n\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\"\n\"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\"\n\"%UPSTREAM_HOST%\"\n\"%UPSTREAM_TRANSPORT_FAILURE_REASON%\"\n"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "trafficDirection": "INBOUND"
+            },
+            {
+                "name": "doltlabapi_listener",
+                "address": {
+                    "socketAddress": {
+                        "address": "0.0.0.0",
+                        "portValue": 9443
+                    }
+                },
+                "filterChains": [
+                    {
+                        "filters": [
+                            {
+                                "name": "envoy.filters.network.http_connection_manager",
+                                "typedConfig": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                                    "statPrefix": "doltlabapi",
+                                    "routeConfig": {
+                                        "name": "local_route",
+                                        "virtualHosts": [
+                                            {
+                                                "name": "local_service",
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabapi_service",
+                                                            "timeout": "600s"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "typedPerFilterConfig": {
+                                            "envoy.filters.http.cors": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy",
+                                                "allowOriginStringMatch": [
+                                                    {
+                                                        "exact": "http://10.109.8.211"
+                                                    },
+                                                    {
+                                                        "exact": "https://10.109.8.211"
+                                                    }
+                                                ],
+                                                "allowMethods": "GET, PUT, DELETE, POST, OPTIONS",
+                                                "allowHeaders": "authorization,keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web",
+                                                "exposeHeaders": "grpc-status,grpc-message",
+                                                "maxAge": "1728000"
+                                            }
+                                        }
+                                    },
+                                    "httpFilters": [
+                                        {
+                                            "name": "envoy.filters.http.grpc_web",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb"
+                                            }
+                                        },
+                                        {
+                                            "name": "envoy.filters.http.cors",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors"
+                                            }
+                                        },
+                                        {
+                                            "name": "envoy.filters.http.router",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                            }
+                                        }
+                                    ],
+                                    "accessLog": [
+                                        {
+                                            "name": "envoy.access_loggers.stream",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog",
+                                                "logFormat": {
+                                                    "textFormatSource": {
+                                                        "inlineString": "[%START_TIME%]\n\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\"\n%RESPONSE_CODE% %GRPC_STATUS% %RESPONSE_FLAGS%\n%BYTES_RECEIVED% %BYTES_SENT%\n%DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\n\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\"\n\"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\"\n\"%UPSTREAM_HOST%\"\n\"%UPSTREAM_TRANSPORT_FAILURE_REASON%\"\n"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "doltlabui_graphql_listener",
+                "address": {
+                    "socketAddress": {
+                        "address": "0.0.0.0",
+                        "portValue": 80
+                    }
+                },
+                "filterChains": [
+                    {
+                        "filters": [
+                            {
+                                "name": "envoy.filters.network.http_connection_manager",
+                                "typedConfig": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                                    "statPrefix": "dolthubui_graphql",
+                                    "routeConfig": {
+                                        "name": "local_route",
+                                        "virtualHosts": [
+                                            {
+                                                "name": "local_service",
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/csv/"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabapi_csv_service",
+                                                            "timeout": "0s",
+                                                            "idleTimeout": "15s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/graphql"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "graphql_service",
+                                                            "timeout": "600s"
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlab_service"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "httpFilters": [
+                                        {
+                                            "name": "envoy.filters.http.router",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                            }
+                                        }
+                                    ],
+                                    "accessLog": [
+                                        {
+                                            "name": "envoy.access_loggers.stream",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog",
+                                                "logFormat": {
+                                                    "textFormatSource": {
+                                                        "inlineString": "[%START_TIME%]\n\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\"\n%RESPONSE_CODE% %GRPC_STATUS% %RESPONSE_FLAGS%\n%BYTES_RECEIVED% %BYTES_SENT%\n%DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\n\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\"\n\"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\"\n\"%UPSTREAM_HOST%\"\n\"%UPSTREAM_TRANSPORT_FAILURE_REASON%\"\n"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "file_service_api_listener",
+                "address": {
+                    "socketAddress": {
+                        "address": "0.0.0.0",
+                        "portValue": 4321
+                    }
+                },
+                "filterChains": [
+                    {
+                        "filters": [
+                            {
+                                "name": "envoy.filters.network.http_connection_manager",
+                                "typedConfig": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                                    "statPrefix": "doltlabapi",
+                                    "routeConfig": {
+                                        "name": "local_route",
+                                        "virtualHosts": [
+                                            {
+                                                "name": "local_service",
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/users"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "fileserviceapi_service",
+                                                            "timeout": "600s"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "typedPerFilterConfig": {
+                                            "envoy.filters.http.cors": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy",
+                                                "allowOriginStringMatch": [
+                                                    {
+                                                        "exact": "http://10.109.8.211"
+                                                    },
+                                                    {
+                                                        "exact": "https://10.109.8.211"
+                                                    }
+                                                ],
+                                                "allowMethods": "GET, PUT, DELETE, POST, OPTIONS",
+                                                "allowHeaders": "authorization,keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,dolthubapi-uploader-id,dolthubapi-operation-id,dolthubapi-operation-secret,x-dfs-security-token,content-md5",
+                                                "exposeHeaders": "etag",
+                                                "maxAge": "1728000",
+                                                "allowCredentials": true
+                                            }
+                                        }
+                                    },
+                                    "httpFilters": [
+                                        {
+                                            "name": "envoy.filters.http.grpc_web",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb"
+                                            }
+                                        },
+                                        {
+                                            "name": "envoy.filters.http.cors",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors"
+                                            }
+                                        },
+                                        {
+                                            "name": "envoy.filters.http.router",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                            }
+                                        }
+                                    ],
+                                    "accessLog": [
+                                        {
+                                            "name": "envoy.access_loggers.stream",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog",
+                                                "logFormat": {
+                                                    "textFormatSource": {
+                                                        "inlineString": "[%START_TIME%]\n\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\"\n%RESPONSE_CODE% %GRPC_STATUS% %RESPONSE_FLAGS%\n%BYTES_RECEIVED% %BYTES_SENT%\n%DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\n\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\"\n\"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\"\n\"%UPSTREAM_HOST%\"\n\"%UPSTREAM_TRANSPORT_FAILURE_REASON%\"\n"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "outbound_graphql_listener",
+                "address": {
+                    "socketAddress": {
+                        "address": "0.0.0.0",
+                        "portValue": 10080
+                    }
+                },
+                "filterChains": [
+                    {
+                        "filters": [
+                            {
+                                "name": "envoy.filters.network.http_connection_manager",
+                                "typedConfig": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                                    "statPrefix": "outbound_graphql",
+                                    "routeConfig": {
+                                        "name": "local_route",
+                                        "virtualHosts": [
+                                            {
+                                                "name": "local_service",
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "graphql_service",
+                                                            "timeout": "600s"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "httpFilters": [
+                                        {
+                                            "name": "envoy.filters.http.router",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                            }
+                                        }
+                                    ],
+                                    "accessLog": [
+                                        {
+                                            "name": "envoy.access_loggers.stream",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog",
+                                                "logFormat": {
+                                                    "textFormatSource": {
+                                                        "inlineString": "[%START_TIME%]\n\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\"\n%RESPONSE_CODE% %GRPC_STATUS% %RESPONSE_FLAGS%\n%BYTES_RECEIVED% %BYTES_SENT%\n%DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\n\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\"\n\"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\"\n\"%UPSTREAM_HOST%\"\n\"%UPSTREAM_TRANSPORT_FAILURE_REASON%\"\n"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "outbound_grpc_listener",
+                "address": {
+                    "socketAddress": {
+                        "address": "0.0.0.0",
+                        "portValue": 9480
+                    }
+                },
+                "filterChains": [
+                    {
+                        "filters": [
+                            {
+                                "name": "envoy.filters.network.http_connection_manager",
+                                "typedConfig": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                                    "statPrefix": "outbound_grpc",
+                                    "routeConfig": {
+                                        "name": "local_route",
+                                        "virtualHosts": [
+                                            {
+                                                "name": "local_service",
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/",
+                                                            "headers": [
+                                                                {
+                                                                    "name": ":authority",
+                                                                    "stringMatch": {
+                                                                        "exact": "doltlabremoteapi"
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "grpc": {}
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabremoteapi_service",
+                                                            "timeout": "600s",
+                                                            "maxStreamDuration": {
+                                                                "grpcTimeoutHeaderMax": "600s"
+                                                            }
+                                                        },
+                                                        "requestHeadersToAdd": [
+                                                            {
+                                                                "header": {
+                                                                    "key": "x-doltremoteapi-is-authorized",
+                                                                    "value": "true"
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/",
+                                                            "headers": [
+                                                                {
+                                                                    "name": ":authority",
+                                                                    "stringMatch": {
+                                                                        "exact": "doltremoteapi-internal"
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "grpc": {}
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabremoteapi_service",
+                                                            "timeout": "600s",
+                                                            "maxStreamDuration": {
+                                                                "grpcTimeoutHeaderMax": "600s"
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/",
+                                                            "headers": [
+                                                                {
+                                                                    "name": ":authority",
+                                                                    "stringMatch": {
+                                                                        "exact": "dolthubapi-internal"
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "grpc": {}
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabapi_service",
+                                                            "timeout": "600s",
+                                                            "maxStreamDuration": {
+                                                                "grpcTimeoutHeaderMax": "600s"
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/",
+                                                            "headers": [
+                                                                {
+                                                                    "name": ":authority",
+                                                                    "stringMatch": {
+                                                                        "exact": "dolthubapi"
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "grpc": {}
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabapi_service",
+                                                            "timeout": "600s",
+                                                            "maxStreamDuration": {
+                                                                "grpcTimeoutHeaderMax": "600s"
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/",
+                                                            "headers": [
+                                                                {
+                                                                    "name": ":authority",
+                                                                    "stringMatch": {
+                                                                        "exact": "doltremoteauth"
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "grpc": {}
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabapi_service",
+                                                            "timeout": "600s"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "httpFilters": [
+                                        {
+                                            "name": "envoy.filters.http.router",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                            }
+                                        }
+                                    ],
+                                    "accessLog": [
+                                        {
+                                            "name": "envoy.access_loggers.stream",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog",
+                                                "logFormat": {
+                                                    "textFormatSource": {
+                                                        "inlineString": "[%START_TIME%]\n\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\"\n%RESPONSE_CODE% %GRPC_STATUS% %RESPONSE_FLAGS%\n%BYTES_RECEIVED% %BYTES_SENT%\n%DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\n\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\"\n\"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\"\n\"%UPSTREAM_HOST%\"\n\"%UPSTREAM_TRANSPORT_FAILURE_REASON%\"\n"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "jobs_tunnel_listener",
+                "address": {
+                    "socketAddress": {
+                        "address": "0.0.0.0",
+                        "portValue": 40041
+                    }
+                },
+                "filterChains": [
+                    {
+                        "filters": [
+                            {
+                                "name": "envoy.filters.network.http_connection_manager",
+                                "typedConfig": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                                    "statPrefix": "jobs_tunnel",
+                                    "routeConfig": {
+                                        "name": "local_route",
+                                        "virtualHosts": [
+                                            {
+                                                "name": "local_service",
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/",
+                                                            "grpc": {}
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabremoteapi_service",
+                                                            "timeout": "600s",
+                                                            "maxStreamDuration": {
+                                                                "grpcTimeoutHeaderMax": "600s"
+                                                            }
+                                                        },
+                                                        "requestHeadersToAdd": [
+                                                            {
+                                                                "header": {
+                                                                    "key": "x-doltremoteapi-is-authorized",
+                                                                    "value": "true"
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "match": {
+                                                            "prefix": "/"
+                                                        },
+                                                        "route": {
+                                                            "cluster": "doltlabremoteapi_file_service",
+                                                            "timeout": "600s",
+                                                            "maxStreamDuration": {
+                                                                "grpcTimeoutHeaderMax": "600s"
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "httpFilters": [
+                                        {
+                                            "name": "envoy.filters.http.router",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                            }
+                                        }
+                                    ],
+                                    "accessLog": [
+                                        {
+                                            "name": "envoy.access_loggers.stream",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog",
+                                                "logFormat": {
+                                                    "textFormatSource": {
+                                                        "inlineString": "[%START_TIME%]\n\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\"\n%RESPONSE_CODE% %GRPC_STATUS% %RESPONSE_FLAGS%\n%BYTES_RECEIVED% %BYTES_SENT%\n%DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\n\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\"\n\"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\"\n\"%UPSTREAM_HOST%\"\n\"%UPSTREAM_TRANSPORT_FAILURE_REASON%\"\n"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "health_check_listener",
+                "address": {
+                    "socketAddress": {
+                        "address": "0.0.0.0",
+                        "portValue": 2001
+                    }
+                },
+                "filterChains": [
+                    {
+                        "filters": [
+                            {
+                                "name": "envoy.filters.network.http_connection_manager",
+                                "typedConfig": {
+                                    "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager",
+                                    "statPrefix": "health_check",
+                                    "routeConfig": {
+                                        "name": "local_route",
+                                        "virtualHosts": [
+                                            {
+                                                "name": "local_service",
+                                                "domains": [
+                                                    "*"
+                                                ],
+                                                "routes": [
+                                                    {
+                                                        "match": {
+                                                            "path": "/"
+                                                        },
+                                                        "directResponse": {
+                                                            "status": 200,
+                                                            "body": {
+                                                                "inlineString": "live\\n"
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "httpFilters": [
+                                        {
+                                            "name": "envoy.filters.http.router",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.filters.http.router.v3.Router"
+                                            }
+                                        }
+                                    ],
+                                    "accessLog": [
+                                        {
+                                            "name": "envoy.access_loggers.stream",
+                                            "typedConfig": {
+                                                "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog",
+                                                "logFormat": {
+                                                    "textFormatSource": {
+                                                        "inlineString": "[%START_TIME%]\n\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\"\n%RESPONSE_CODE% %GRPC_STATUS% %RESPONSE_FLAGS%\n%BYTES_RECEIVED% %BYTES_SENT%\n%DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\n\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\"\n\"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\"\n\"%UPSTREAM_HOST%\"\n\"%UPSTREAM_TRANSPORT_FAILURE_REASON%\"\n"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "trafficDirection": "INBOUND"
+            }
+        ],
+        "clusters": [
+            {
+                "name": "admin",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "admin",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "0.0.0.0",
+                                                "portValue": 9901
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "doltlabapi_service",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "doltlabapi_service",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "doltlabapi",
+                                                "portValue": 60051
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "typedExtensionProtocolOptions": {
+                    "envoy.extensions.upstreams.http.v3.HttpProtocolOptions": {
+                        "@type": "type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions",
+                        "explicitHttpConfig": {
+                            "http2ProtocolOptions": {}
+                        }
+                    }
+                }
+            },
+            {
+                "name": "doltlabapi_csv_service",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "doltlabapi_csv_service",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "doltlabapi",
+                                                "portValue": 60052
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "graphql_service",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "graphql_service",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "doltlabgraphql",
+                                                "portValue": 9000
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "doltlab_service",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "doltlab_service",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "doltlabui",
+                                                "portValue": 3000
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "fileserviceapi_service",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "fileserviceapi_service",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "doltlabfileserviceapi",
+                                                "portValue": 60055
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "doltlabremoteapi_service",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "doltlabremoteapi_service",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "doltlabremoteapi",
+                                                "portValue": 50051
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "typedExtensionProtocolOptions": {
+                    "envoy.extensions.upstreams.http.v3.HttpProtocolOptions": {
+                        "@type": "type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions",
+                        "explicitHttpConfig": {
+                            "http2ProtocolOptions": {}
+                        }
+                    }
+                }
+            },
+            {
+                "name": "doltlabremoteapi_file_service",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "doltlabremoteapi_file_service",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "doltlabremoteapi",
+                                                "portValue": 100
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "backup_syncer_metrics",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "backup_syncer_metrics",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "backup-syncer",
+                                                "portValue": 50091
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "doltlabapi_metrics",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "doltlabapi_metrics",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "doltlabapi",
+                                                "portValue": 50091
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "typedExtensionProtocolOptions": {
+                    "envoy.upstreams.http.http_protocol_options": {
+                        "@type": "type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions",
+                        "explicitHttpConfig": {
+                            "httpProtocolOptions": {
+                                "acceptHttp10": true
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "name": "doltlabremoteapi_metrics",
+                "type": "STRICT_DNS",
+                "connectTimeout": "0.250s",
+                "loadAssignment": {
+                    "clusterName": "doltlabremoteapi_metrics",
+                    "endpoints": [
+                        {
+                            "lbEndpoints": [
+                                {
+                                    "endpoint": {
+                                        "address": {
+                                            "socketAddress": {
+                                                "address": "doltlabremoteapi",
+                                                "portValue": 50091
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "typedExtensionProtocolOptions": {
+                    "envoy.upstreams.http.http_protocol_options": {
+                        "@type": "type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions",
+                        "explicitHttpConfig": {
+                            "httpProtocolOptions": {
+                                "acceptHttp10": true
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    },
+    "admin": {
+        "accessLog": [
+            {
+                "name": "envoy.access_loggers.stream",
+                "typedConfig": {
+                    "@type": "type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog",
+                    "logFormat": {
+                        "textFormatSource": {
+                            "inlineString": "[%START_TIME%]\n\"%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%\"\n%RESPONSE_CODE% %GRPC_STATUS% %RESPONSE_FLAGS%\n%BYTES_RECEIVED% %BYTES_SENT%\n%DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%\n\"%DOWNSTREAM_REMOTE_ADDRESS_WITHOUT_PORT%\"\n\"%REQ(USER-AGENT)%\" \"%REQ(X-REQUEST-ID)%\" \"%REQ(:AUTHORITY)%\"\n\"%UPSTREAM_HOST%\"\n\"%UPSTREAM_TRANSPORT_FAILURE_REASON%\"\n"
+                        }
+                    }
+                }
+            }
+        ],
+        "address": {
+            "socketAddress": {
+                "address": "0.0.0.0",
+                "portValue": 9901
+            }
+        }
+    }
+}
