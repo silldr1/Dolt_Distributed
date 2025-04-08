@@ -1,0 +1,15 @@
+services:
+  nginx:
+    image: nginx:1.21.6
+    ports:
+      - "50052:50052"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - doltlab
+
+
+networks:
+  doltlab:
+    external: true

@@ -1,5 +1,4 @@
 services:
- 
   node1:
     image: dolthub/dolt:latest
     container_name: node1

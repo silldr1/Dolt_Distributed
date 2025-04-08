@@ -3,7 +3,7 @@
   "remotes": {
     "origin": {
       "name": "origin",
-      "url": "http://10.109.8.211:50051/admin/test",
+      "url": "https://10.109.8.211:50052/admin/test",
       "fetch_specs": [
         "refs/heads/*:refs/remotes/origin/*"
       ],

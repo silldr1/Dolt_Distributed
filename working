@@ -1,0 +1,1 @@
+dolt login --insecure --auth-endpoint localhost:50051 --login-url http://localhost/settings/credentials
