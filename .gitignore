@@ -1,1 +1,4 @@
 creds/*.jwk
+.dolt/
+.dolt
+.dolt/*
