@@ -1,11 +1,33 @@
 services:
   dolt-remote:
-    image: alpine
+    image: dolthub/dolt-sql-server
     container_name: dolt-remote
+    hostname: dolt-remote
+    environment:
+      - DOLT_ROOT_PASSWORD=password
+      - DOLT_ROOT_HOST=%
     volumes:
       - dolt_remote_data:/dolt-remote
-    command: tail -f /dev/null
+      - ./remote_init.sh:/init.sh
+    ports:
+      - "3307:3306"
+    entrypoint: >
+      sh /init.sh
 
+  dolt-workbench:
+    image: dolthub/dolt-workbench
+    container_name: dolt-workbench
+    hostname: dolt-workbench
+    depends_on:
+      - dolt-remote
+    ports:
+      - 3000:3000
+      - 9002:9002
+    environment:
+      - DW_DB_CONNECTION_URI=mysql://root:password@dolt-remote:3306/test-repo
+    volumes:
+      - ./workbench-store:/app/graphql-server/store
+      - dolt_remote_data:/dolt-remote
 
   node1:
     image: dolthub/dolt
