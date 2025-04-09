@@ -13,10 +13,11 @@ done
 
 touch /dolt-remote/.ready
 
-cd /dolt-remote/test-repo
+dolt clone file:///dolt-remote/test-repo /var/lib/dolt/test-repo
+
 
 # Step 3: Start Dolt SQL server
-dolt sql-server -H 0.0.0.0 --port 3306
+exec dolt sql-server -H 0.0.0.0 --port 3306
 
 
 

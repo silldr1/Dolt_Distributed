@@ -9,6 +9,7 @@ services:
     volumes:
       - dolt_remote_data:/dolt-remote
       - ./remote_init.sh:/init.sh
+
     ports:
       - "3307:3306"
     entrypoint: >
@@ -19,12 +20,15 @@ services:
     container_name: dolt-workbench
     hostname: dolt-workbench
     depends_on:
-      - dolt-remote
+      dolt-remote:
+        condition: service_started
+      mysql-metadata:
+        condition: service_healthy
     ports:
       - 3000:3000
       - 9002:9002
     environment:
-      - DW_DB_CONNECTION_URI=mysql://root:password@dolt-remote:3306/test-repo
+      - DW_DB_CONNECTION_URI=mysql://root:password@mysql-metadata:3306/dolt_workbench
     volumes:
       - ./workbench-store:/app/graphql-server/store
       - dolt_remote_data:/dolt-remote
@@ -68,8 +72,28 @@ services:
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
+  mysql-metadata:
+    image: mysql:8.0
+    container_name: mysql-metadata
+    hostname: mysql-metadata
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_metadata_data:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-ppassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
 volumes:
   node1_data:
   node2_data:
   node3_data:
   dolt_remote_data:
+  mysql_metadata_data:
