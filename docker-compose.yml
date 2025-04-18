@@ -1,6 +1,6 @@
 services:
   dolt-remote:
-    image: dolthub/dolt-sql-server
+    image: dolthub/dolt
     container_name: dolt-remote
     hostname: dolt-remote
     environment:
@@ -8,7 +8,8 @@ services:
       - DOLT_ROOT_HOST=%
     volumes:
       - dolt_remote_data:/dolt-remote
-      - ./remote_init.sh:/init.sh
+      - ./remote/remote_init.sh:/init.sh
+      - ./remote/db_init.sql:/db_init.sql
 
     ports:
       - "3307:3306"
@@ -16,21 +17,17 @@ services:
       sh /init.sh
 
   dolt-workbench:
-    image: dolthub/dolt-workbench
+    image: dolthub/dolt-workbench:latest
     container_name: dolt-workbench
     hostname: dolt-workbench
     depends_on:
       dolt-remote:
         condition: service_started
-      mysql-metadata:
-        condition: service_healthy
     ports:
       - 3000:3000
       - 9002:9002
-    environment:
-      - DW_DB_CONNECTION_URI=mysql://root:password@mysql-metadata:3306/dolt_workbench
     volumes:
-      - ./workbench-store:/app/graphql-server/store
+      - ./workbench_store:/app/graphql-server/store
       - dolt_remote_data:/dolt-remote
 
   node1:
@@ -39,10 +36,15 @@ services:
     hostname: node1
     depends_on:
       - dolt-remote
+    ports:
+      - "3309:3306"
+    environment:
+      - DOLT_ROOT_PASSWORD=password
+      - DOLT_ROOT_HOST=%
     volumes:
       - node1_data:/root/dolt
       - dolt_remote_data:/dolt-remote
-      - ./node1/init.sh:/init.sh
+      - ./nodes/init.sh:/init.sh
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
@@ -52,43 +54,18 @@ services:
     hostname: node2
     depends_on:
       - dolt-remote
+    ports:
+      - "3310:3306"
+    environment:
+      - DOLT_ROOT_PASSWORD=password
+      - DOLT_ROOT_HOST=%
     volumes:
       - node2_data:/root/dolt
       - dolt_remote_data:/dolt-remote
-      - ./nodeX/init.sh:/init.sh
+      - ./nodes/init.sh:/init.sh
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
-  node3:
-    image: dolthub/dolt
-    container_name: node3
-    hostname: node3
-    depends_on:
-      - dolt-remote
-    volumes:
-      - node3_data:/root/dolt
-      - dolt_remote_data:/dolt-remote
-      - ./nodeX/init.sh:/init.sh
-    working_dir: /root/dolt
-    entrypoint: sh -c ". /init.sh && tail -f /dev/null"
-
-  mysql-metadata:
-    image: mysql:8.0
-    container_name: mysql-metadata
-    hostname: mysql-metadata
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-    ports:
-      - "3308:3306"
-    volumes:
-      - mysql_metadata_data:/var/lib/mysql
-      - ./mysql:/docker-entrypoint-initdb.d
-    command: --default-authentication-plugin=mysql_native_password
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-ppassword"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
 
 
 volumes:
@@ -96,4 +73,3 @@ volumes:
   node2_data:
   node3_data:
   dolt_remote_data:
-  mysql_metadata_data:
