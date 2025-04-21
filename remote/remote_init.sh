@@ -18,6 +18,13 @@ dolt push origin main
 
 touch /dolt-remote/.ready
 
+
+# Append non-root user before starting SQL server.
+echo "Creating non-root user..."
+dolt sql -q "CREATE USER IF NOT EXISTS 'Local Node'@'%' IDENTIFIED WITH mysql_native_password BY 'password';"
+dolt sql -q "GRANT ALL PRIVILEGES ON *.* TO 'Local Node'@'%';"
+dolt sql -q "FLUSH PRIVILEGES;"
+
 # Step 3: Start Dolt SQL server
 exec dolt sql-server -H 0.0.0.0 --port 3306
 

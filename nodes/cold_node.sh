@@ -20,7 +20,7 @@ cd dolt   # Enter the repository.
 dolt checkout main
 
 dolt sql -q "CREATE USER IF NOT EXISTS '$(hostname)'@'%' IDENTIFIED WITH mysql_native_password BY 'password';"
-dolt sql -q "GRANT ALL PRIVILEGES ON *.* TO '$(hostname)'@'%';"
+dolt sql -q "GRANT SELECT ON *.* TO '$(hostname)'@'%';"
 dolt sql -q "FLUSH PRIVILEGES;"
 
 
