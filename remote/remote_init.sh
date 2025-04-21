@@ -25,6 +25,10 @@ dolt sql -q "CREATE USER IF NOT EXISTS 'Local Node'@'%' IDENTIFIED WITH mysql_na
 dolt sql -q "GRANT ALL PRIVILEGES ON *.* TO 'Local Node'@'%';"
 dolt sql -q "FLUSH PRIVILEGES;"
 
+dolt sql -q "CREATE USER IF NOT EXISTS 'Read Only'@'%' IDENTIFIED WITH mysql_native_password BY 'password';"
+dolt sql -q "GRANT SELECT ON *.* TO 'Read Only'@'%';"
+dolt sql -q "FLUSH PRIVILEGES;"
+
 # Step 3: Start Dolt SQL server
 exec dolt sql-server -H 0.0.0.0 --port 3306
 

@@ -44,8 +44,9 @@ MySQL
 3. Main Commit Log
     a. navigate to main commit log
     b. point out timeline, hash, author, etc
-    c. make a couple commits
-    d. review the diffs of those commits
+    c. show the working stage before commiting a change
+    d. make a couple commits
+    e. review the diffs of those commits
         -  Can revert at anytime - not in UI have to create a branch
 4. Branching
     a. create an exercise branch
@@ -68,10 +69,18 @@ MySQL
         - Explain how commit is in repo but not at other nodes
     d. look at the commit diff - small size
     e. pull from node 2 and then commit
-    f. pull from remote and show log, highlight author
+    f. Show diff log over several commits
+    g. pull from remote and show log, highlight author
 
     All nodes are contributing to a single consistent history
     No change is left behind, no node is left behing
-    Easy collaboration
+    Easy collaboration and control
 
 ## Demo Notes
+To do:
+
+Potentially Edit Data
+Make a powerpoint
+- Explain git basics and how they work
+- Go over how conflicts are handled ?
+- Address user roles and access ?
