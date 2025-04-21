@@ -66,29 +66,10 @@ services:
     working_dir: /root/dolt
     entrypoint: sh -c ". /init.sh && tail -f /dev/null"
 
-  cold-node:
-    image: dolthub/dolt
-    container_name: cold-node
-    hostname: cold-node
-    depends_on:
-      - local-node
-    ports:
-      - "3311:3306"
-    environment:
-      - DOLT_ROOT_PASSWORD=password
-      - DOLT_ROOT_HOST=%
-    volumes:
-      - node3_data:/root/dolt
-      - dolt_remote_data:/dolt-remote
-      - ./nodes/cold_node.sh:/init.sh
-    working_dir: /root/dolt
-    entrypoint: sh -c ". /init.sh && tail -f /dev/null"
-
 
 
 volumes:
   localnode_data:
   node1_data:
   node2_data:
-  node3_data:
   dolt_remote_data:
