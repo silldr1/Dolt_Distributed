@@ -47,7 +47,10 @@ MySQL
     c. show the working stage before commiting a change
     d. make a couple commits
     e. review the diffs of those commits
-        -  Can revert at anytime - not in UI have to create a branch
+        -  Can revert at anytime - SQL CALL dolt_revert(#Hash#)
+            - Undo the changes of that commit
+        -  Can reset - back to the state after a commit
+        - CALL dolt_reset()
 4. Branching
     a. create an exercise branch
     b. remove a satellite frequency and section satellite
