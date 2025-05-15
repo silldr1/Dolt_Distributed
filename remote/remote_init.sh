@@ -8,12 +8,19 @@ dolt config --global --add user.email "dolt-remote@localhost"
 echo "Initializing Dolt repository..."
 cd /root/dolt
 dolt init
+dolt branch old
+dolt checkout old
 dolt sql < /db_init.sql
 dolt add .
-dolt commit -m "init database"
+dolt commit -m "init old database"
+dolt checkout main
+dolt sql < /new_db_init.sql
+dolt add .
+dolt commit -m "init new database"
 mkdir -p /dolt-remote/test-repo
 dolt remote add origin file:///dolt-remote/test-repo
 dolt push origin main
+
 
 
 touch /dolt-remote/.ready

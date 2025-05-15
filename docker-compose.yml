@@ -11,6 +11,7 @@ services:
       - dolt_remote_data:/dolt-remote
       - ./remote/remote_init.sh:/init.sh
       - ./remote/db_init.sql:/db_init.sql
+      - ./remote/new_db_init.sql:/new_db_init.sql
     ports:
       - "3307:3306"
     entrypoint: >
