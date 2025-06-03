@@ -7,15 +7,11 @@ services:
       - DOLT_ROOT_PASSWORD=password
       - DOLT_ROOT_HOST=%
     volumes:
-      - localnode_data:/root/dolt
-      - dolt_remote_data:/dolt-remote
-      - ./remote/remote_init.sh:/init.sh
-      - ./remote/db_init.sql:/db_init.sql
-      - ./remote/new_db_init.sql:/new_db_init.sql
+      - /opt/dolt:/root/dolt             # Persistent dolt repo data
+      - /opt/sql_dumps:/sql_dumps        # External SQL dump source
     ports:
       - "3307:3306"
-    entrypoint: >
-      sh /init.sh
+    entrypoint: sh -c "/sql_dumps/bootstrap.sh && tail -f /dev/null"
 
   dolt-workbench:
     image: dolthub/dolt-workbench:latest
